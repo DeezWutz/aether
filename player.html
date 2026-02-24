@@ -1736,6 +1736,18 @@ body::after {
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
+// ============ GLOBAL ERROR TRAP — force dismiss splash on crash ============
+window.addEventListener('error', (e) => {
+  console.error('GLOBAL ERROR:', e.message, e.filename, e.lineno);
+  const s = document.getElementById('splashScreen');
+  if (s) { s.style.display = 'none'; s.remove(); }
+});
+window.addEventListener('unhandledrejection', (e) => {
+  console.error('UNHANDLED PROMISE:', e.reason);
+  const s = document.getElementById('splashScreen');
+  if (s) { s.style.display = 'none'; s.remove(); }
+});
+
 // ============ SPLASH — UFO CONTROL CONSOLE CANVAS ============
 (function() {
   const sc = document.getElementById('splashCanvas');
@@ -3797,7 +3809,10 @@ document.getElementById('settTestConn').addEventListener('click', async () => {
   setTimeout(() => { btn.textContent = 'TEST CONNECTION'; btn.style.borderColor = ''; }, 3000);
 });
 
-// ============ ELECTRIC SHEEP SETTINGS ============
+// ============ ELECTRIC SHEEP STATE & SETTINGS ============
+let sheepVideos = [];
+let sheepVideoIdx = 0;
+let sheepFolder = '';
 function updateSheepStatus() {
   const el = document.getElementById('settSheepStatus');
   if (!el) return;
@@ -4025,11 +4040,6 @@ let dnaCameraAngle = 0;
 // Cosmic Mandala state
 let mandalaParticles = null;
 let mandalaBeatPulse = 0;
-
-// Electric Sheep state
-let sheepVideos = [];
-let sheepVideoIdx = 0;
-let sheepFolder = '';
 
 // Load Electric Sheep videos from a folder
 async function loadSheepVideos(folderPath) {
