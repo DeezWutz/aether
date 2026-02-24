@@ -1736,16 +1736,14 @@ body::after {
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
-// ============ GLOBAL ERROR TRAP — force dismiss splash on crash ============
+// ============ SAFETY NET — dismiss splash on uncaught errors ============
 window.addEventListener('error', (e) => {
-  console.error('GLOBAL ERROR:', e.message, e.filename, e.lineno);
+  console.error('AETHER ERROR:', e.message, e.filename, e.lineno);
   const s = document.getElementById('splashScreen');
-  if (s) { s.style.display = 'none'; s.remove(); }
+  if (s) { s.classList.add('fade-out'); setTimeout(() => s.remove(), 900); }
 });
 window.addEventListener('unhandledrejection', (e) => {
-  console.error('UNHANDLED PROMISE:', e.reason);
-  const s = document.getElementById('splashScreen');
-  if (s) { s.style.display = 'none'; s.remove(); }
+  console.error('AETHER PROMISE ERROR:', e.reason);
 });
 
 // ============ SPLASH — UFO CONTROL CONSOLE CANVAS ============
@@ -7344,21 +7342,42 @@ async function fetchLyrics() {
   lyricRainLyricWords = [];
   lyricRainWordIndex = 0;
 
-  try {
-    // Try Subsonic getLyrics API
-    const resp = await SUBSONIC.get('getLyrics', { artist: t.artist || '', title: t.title || '' });
-    if (resp && resp.lyrics && resp.lyrics.value) {
-      lyricRainLyrics = resp.lyrics.value;
+  const artist = t.artist || '';
+  const title = t.title || '';
+
+  // Try LRCLIB (free lyrics API, no key needed)
+  if (artist && title) {
+    try {
+      const lrcUrl = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(artist)}&track_name=${encodeURIComponent(title)}`;
+      const controller = new AbortController();
+      const tid = setTimeout(() => controller.abort(), 5000);
+      const res = await fetch(lrcUrl, { signal: controller.signal });
+      clearTimeout(tid);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.plainLyrics) {
+          lyricRainLyrics = data.plainLyrics;
+          console.log('Lyrics loaded from LRCLIB for:', artist, '-', title);
+        }
+      }
+    } catch(e) {
+      console.log('LRCLIB fetch failed:', e.message);
     }
-  } catch(e) {
-    console.log('Lyrics fetch failed, using track info');
   }
 
-  // Fallback: use track title + artist as repeating text
+  // Fallback: try Subsonic getLyrics
   if (!lyricRainLyrics) {
-    const title = t.title || 'AETHER';
-    const artist = t.artist || '';
-    lyricRainLyrics = (artist ? artist + ' — ' : '') + title;
+    try {
+      const resp = await SUBSONIC.get('getLyrics', { artist, title });
+      if (resp && resp.lyrics && resp.lyrics.value) {
+        lyricRainLyrics = resp.lyrics.value;
+      }
+    } catch(e) {}
+  }
+
+  // Final fallback: use track title + artist as repeating text
+  if (!lyricRainLyrics) {
+    lyricRainLyrics = (artist ? artist + ' — ' : '') + (title || 'AETHER');
   }
 
   // Split into words
