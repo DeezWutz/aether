@@ -1967,9 +1967,17 @@ const SUBSONIC = {
   async get(endpoint, params = {}) {
     const query = new URLSearchParams(params).toString();
     const url = `${this.baseUrl}/rest/${endpoint}?${this.auth()}${query ? '&' + query : ''}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    return data['subsonic-response'];
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      const data = await res.json();
+      return data['subsonic-response'];
+    } catch(e) {
+      clearTimeout(timeoutId);
+      throw e;
+    }
   },
   streamUrl(id) {
     return `${this.baseUrl}/rest/stream?id=${id}&${this.auth()}`;
