@@ -1953,7 +1953,7 @@ body.electron .mobile-overlay {
         <div class="viz-preview" style="background:linear-gradient(180deg, #000 0%, rgba(0,220,245,0.05) 50%, rgba(123,47,190,0.08) 100%); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:1.5rem; color:rgba(0,220,245,0.6); text-shadow:0 0 12px rgba(0,220,245,0.5); letter-spacing:4px;">LYRICS</div>
         <div class="viz-info">
           <div class="viz-name">LYRIC RAIN</div>
-          <div class="viz-desc">Matrix-style falling letter rain in cyan and purple. Song lyrics materialize letter-by-letter out of the cascade.</div>
+          <div class="viz-desc">Matrix-style falling letter rain in cyan and purple. Song lyrics fetched via LRCLIB materialize letter-by-letter out of the cascade.</div>
         </div>
       </div>
 
@@ -2065,7 +2065,7 @@ body.electron .mobile-overlay {
           <svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="12" y2="18"/></svg>
         </div>
         <div class="feature-title">10-BAND PARAMETRIC EQ</div>
-        <div class="feature-text">Full parametric equalizer with visual frequency curve. Shape your sound with precision.</div>
+        <div class="feature-text">Full parametric equalizer with 10 built-in presets. Slide-up panel from now-playing bar. Shape your sound with precision.</div>
       </div>
 
       <div class="feature-card reveal" style="transition-delay:0.35s">
@@ -2099,6 +2099,14 @@ body.electron .mobile-overlay {
         <div class="feature-title">SMART PLAYLISTS</div>
         <div class="feature-text">Auto-generated playlists based on play history, genre, mood, and custom rules. Your library, organized.</div>
       </div>
+
+      <div class="feature-card reveal" style="transition-delay:0.55s">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18" stroke="currentColor" fill="none" stroke-width="1.5"/><path d="M5.636 5.636l12.728 12.728M18.364 5.636L5.636 18.364" stroke="currentColor" fill="none" stroke-width="1" opacity="0.5"/></svg>
+        </div>
+        <div class="feature-title">LRCLIB LYRICS</div>
+        <div class="feature-text">Automatic lyrics fetched from LRCLIB's open database. Powers the Lyric Rain visualizer with real song text.</div>
+      </div>
     </div>
   </div>
 </section>
@@ -2122,6 +2130,7 @@ body.electron .mobile-overlay {
       <div class="tech-badge"><span class="tech-dot"></span>10-Band EQ</div>
       <div class="tech-badge"><span class="tech-dot"></span>Beat Detection</div>
       <div class="tech-badge"><span class="tech-dot"></span>FFT Analysis</div>
+      <div class="tech-badge"><span class="tech-dot"></span>LRCLIB API</div>
       <div class="tech-badge"><span class="tech-dot"></span>npm</div>
     </div>
 
