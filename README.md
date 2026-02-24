@@ -35,7 +35,7 @@ Every pixel is intentional. Every animation is buttery. Every visualizer is a ca
 
 ## `> VISUALIZERS`
 
-13 hand-crafted scenes. All canvas 2D. All 60fps. All beat-reactive.
+17 hand-crafted scenes. All canvas 2D. All 60fps. All beat-reactive.
 
 | # | Scene | Description |
 |---|-------|-------------|
@@ -52,6 +52,10 @@ Every pixel is intentional. Every animation is buttery. Every visualizer is a ca
 | 10 | **Electric Sheep** | Video-based fractal flame playback |
 | 11 | **Bio-Genesis** | Organic organisms with membranes, mitochondria, flagella |
 | 12 | **Command Deck** | UFO HUD dashboard — radar, oscilloscope, frequency bars |
+| 13 | **Void Pulse II** | Clean concentric ripples — dramatic slow expansion with color-shifting rings |
+| 14 | **Neural Web II** | High-reactivity geometric network — multi-color nodes with signal pulses |
+| 15 | **DNA Helix II** | Vertical double-strand helix — cyan/magenta strands with depth layering |
+| 16 | **Lyric Rain** | Matrix-style falling letter rain — lyrics materialize out of cyan/purple cascade |
 
 Auto-rotate cycles through scenes, or pin your favorite. Every scene has unique beat detection behavior and glow effects that bleed into the UI panel borders.
 
@@ -71,7 +75,7 @@ Auto-rotate cycles through scenes, or pin your favorite. Every scene has unique 
 
  LIBRARY
   ├─ Navidrome/Subsonic API integration
-  ├─ Albums, Artists, Playlists, Search
+  ├─ Albums, Artists, Genres, Binaural, Playlists, Search
   ├─ 100k+ track support (paginated loading)
   ├─ Smart queue management
   ├─ Shuffle (no-repeat algorithm)
@@ -81,7 +85,7 @@ Auto-rotate cycles through scenes, or pin your favorite. Every scene has unique 
   ├─ OLED-optimized (true #000000 black)
   ├─ Monochromatic purple palette (12 shades)
   ├─ Glassmorphism overlays
-  ├─ Collapsible sidebar
+  ├─ Collapsible sidebar (Library, Albums, Artists, Genres, Binaural, Search, Queue)
   ├─ Horizontal / Vertical layout modes
   ├─ Navigation history with back button
   ├─ Full keyboard shortcut system

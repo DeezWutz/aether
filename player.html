@@ -24,10 +24,11 @@
   ║      ├─ MD5 hasher (Subsonic auth)                               ║
   ║      ├─ Subsonic API client                                      ║
   ║      ├─ Audio engine (Web Audio API pipeline)                    ║
-  ║      ├─ Library views (albums, artists, playlists, search)       ║
+  ║      ├─ Library views (albums, artists, genres, binaural, search) ║
+  ║      ├─ Rhythmic Binaural Brainwave Layering Engine              ║
   ║      ├─ Queue management & playback                              ║
   ║      ├─ Settings persistence (localStorage)                      ║
-  ║      ├─ 13 Visualizer scenes (Canvas 2D)                         ║
+  ║      ├─ 17 Visualizer scenes (Canvas 2D)                         ║
   ║      ├─ Beat detection & frequency band analysis                 ║
   ║      └─ Keyboard shortcuts & navigation                          ║
   ║                                                                  ║
@@ -2031,7 +2032,7 @@ let allPlaylists = [];
 let currentView = 'library';
 let vizGlowIntensity = 0;
 let currentScene = 0;
-const SCENES = ['FRACTAL FLAME', 'VOID PULSE', 'TRON GRID', 'PARTICLE FIELD', 'WAVEFORM BARS', 'PLASMA WARP', 'NEURAL WEB', 'AURORA BOREALIS', 'DNA HELIX', 'COSMIC MANDALA', 'ELECTRIC SHEEP', 'BIO-GENESIS', 'COMMAND DECK', 'VOID PULSE II', 'NEURAL WEB II', 'DNA HELIX II'];
+const SCENES = ['FRACTAL FLAME', 'VOID PULSE', 'TRON GRID', 'PARTICLE FIELD', 'WAVEFORM BARS', 'PLASMA WARP', 'NEURAL WEB', 'AURORA BOREALIS', 'DNA HELIX', 'COSMIC MANDALA', 'ELECTRIC SHEEP', 'BIO-GENESIS', 'COMMAND DECK', 'VOID PULSE II', 'NEURAL WEB II', 'DNA HELIX II', 'LYRIC RAIN'];
 let vizAutoRotate = false;
 let vizAutoRotateInterval = 60000;
 let vizAutoRotateTimer = null;
@@ -6789,8 +6790,8 @@ function drawCommandDeck(ctx, w, h, time) {
 let voidPulseIIRings = [];
 
 function drawVoidPulseII(ctx, w, h, time) {
-  // Soft trail fade — ghostly ring trails
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+  // Very slow trail fade — long ghostly ring persistence
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.025)';
   ctx.fillRect(0, 0, w, h);
 
   const cx = w / 2, cy = h / 2;
@@ -6806,20 +6807,20 @@ function drawVoidPulseII(ctx, w, h, time) {
     [0, 180, 216],    // deep cyan
   ];
 
-  // Spawn new rings on beat or periodically
+  // Spawn new rings on beat or periodically — slower, more dramatic
   const now = time;
-  if (bi > 0.25 || (voidPulseIIRings.length === 0) || (voidPulseIIRings.length < 8 && now % 800 < 16)) {
-    const count = bi > 0.5 ? 3 : 1;
+  if (bi > 0.3 || (voidPulseIIRings.length === 0) || (voidPulseIIRings.length < 5 && now % 1200 < 16)) {
+    const count = bi > 0.6 ? 2 : 1;
     for (let i = 0; i < count; i++) {
       const color = ringColors[Math.floor(Math.random() * ringColors.length)];
       voidPulseIIRings.push({
         radius: 5 + i * 8,
-        maxRadius: minDim * (0.5 + Math.random() * 0.3),
-        speed: 1.2 + bi * 2.5 + Math.random() * 0.8,
-        alpha: 0.6 + bi * 0.4,
-        lineWidth: 1 + bi * 2,
+        maxRadius: minDim * (0.6 + Math.random() * 0.4),
+        speed: 0.4 + bi * 1.2 + Math.random() * 0.3,
+        alpha: 0.7 + bi * 0.3,
+        lineWidth: 1.5 + bi * 2.5,
         born: now,
-        wobbleAmp: bands.mid * 8 + bands.high * 4,
+        wobbleAmp: bands.mid * 6 + bands.high * 3,
         wobbleFreq: 3 + Math.floor(Math.random() * 5),
         color: color
       });
@@ -6941,27 +6942,34 @@ function drawNeuralWebII(ctx, w, h, time) {
 
   const bi = beatIntensity;
 
-  // Beat: pulse nodes and spawn signals
-  if (bi > 0.4 && neuralWebIIBeatCooldown <= 0) {
-    neuralWebIIBeatCooldown = 12;
+  // Beat: pulse nodes and spawn signals — high reactivity
+  if (bi > 0.2 && neuralWebIIBeatCooldown <= 0) {
+    neuralWebIIBeatCooldown = 6;
     neuralWebIINodes.forEach(n => {
-      n.pulse = bi;
+      n.pulse = Math.min(1.5, n.pulse + bi * 1.2);
     });
-    // Spawn signal pulses
-    for (let s = 0; s < 4; s++) {
+    // Spawn signal pulses — more signals for bigger beats
+    const sigCount = bi > 0.6 ? 10 : bi > 0.35 ? 7 : 4;
+    for (let s = 0; s < sigCount; s++) {
       const fromIdx = Math.floor(Math.random() * neuralWebIINodes.length);
       neuralWebIISignals.push({
         fromIdx,
         toIdx: -1,
         progress: 0,
-        speed: 0.015 + Math.random() * 0.025,
+        speed: 0.02 + Math.random() * 0.035 + bi * 0.02,
         alpha: 0.8 + bi * 0.2
       });
     }
   }
+  // Also react to continuous energy, not just beats
+  if (bands.energy > 0.3) {
+    neuralWebIINodes.forEach(n => {
+      n.pulse = Math.max(n.pulse, bands.energy * 0.4);
+    });
+  }
   if (neuralWebIIBeatCooldown > 0) neuralWebIIBeatCooldown--;
 
-  const maxDist = 120 + bands.energy * 80;
+  const maxDist = 140 + bands.energy * 120;
 
   // Update nodes — slow drift
   neuralWebIINodes.forEach(n => {
@@ -6974,9 +6982,9 @@ function drawNeuralWebII(ctx, w, h, time) {
     if (n.y < -20) n.y = h + 20;
     if (n.y > h + 20) n.y = -20;
 
-    // Beat pulse decay
-    n.pulse *= 0.92;
-    n.size = n.baseSize * (1 + n.pulse * 2.5);
+    // Beat pulse decay — slow glow fade
+    n.pulse *= 0.95;
+    n.size = n.baseSize * (1 + n.pulse * 3.5);
   });
 
   // Build connection list for signal routing
@@ -6996,7 +7004,7 @@ function drawNeuralWebII(ctx, w, h, time) {
   ctx.globalCompositeOperation = 'lighter';
   connections.forEach(({ i, j, dist }) => {
     const a = neuralWebIINodes[i], b = neuralWebIINodes[j];
-    const alpha = (1 - dist / maxDist) * (0.1 + bands.energy * 0.3 + bi * 0.2);
+    const alpha = (1 - dist / maxDist) * (0.15 + bands.energy * 0.5 + bi * 0.35);
     // Blend colors of connected nodes
     const c = [
       Math.floor((a.color[0] + b.color[0]) / 2),
@@ -7114,12 +7122,12 @@ function drawDnaHelixII(ctx, w, h, time) {
   const bi = beatIntensity;
   const t = time * 0.001;
 
-  // Beat pulse
-  if (bi > 0.3) dnaHelixIIBeatPulse = Math.min(1, dnaHelixIIBeatPulse + bi * 0.4);
-  dnaHelixIIBeatPulse *= 0.94;
+  // Beat pulse — slow swell
+  if (bi > 0.3) dnaHelixIIBeatPulse = Math.min(1, dnaHelixIIBeatPulse + bi * 0.3);
+  dnaHelixIIBeatPulse *= 0.97;
 
-  // Slow rotation via phase shift
-  dnaHelixIIPhase += 0.008 * (1 + bands.bass * 0.5);
+  // Slow rotation via phase shift — gentle drift
+  dnaHelixIIPhase += 0.002 * (1 + bands.bass * 0.3);
 
   // Helix parameters
   const helixAmplitude = Math.min(w, h) * 0.15 + bands.mid * 30;
@@ -7273,10 +7281,248 @@ function drawDnaHelixII(ctx, w, h, time) {
   vizGlowIntensity = bands.energy * 0.3 + bi * 0.5;
 }
 
+// ============ SCENE 16: LYRIC RAIN — Matrix-style falling letters with lyrics ============
+let lyricRainColumns = null;
+let lyricRainChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*!?><{}[]|/\\~^`';
+let lyricRainLastTrackId = null;
+let lyricRainLyrics = '';
+let lyricRainLyricWords = [];
+let lyricRainWordIndex = 0;
+let lyricRainWordTimer = 0;
+let lyricRainActiveWords = []; // words materializing on screen
+let lyricRainFontSize = 14;
+
+function initLyricRain(w, h) {
+  lyricRainFontSize = Math.max(10, Math.min(16, Math.floor(w / 80)));
+  const cols = Math.floor(w / lyricRainFontSize);
+  lyricRainColumns = [];
+  for (let i = 0; i < cols; i++) {
+    lyricRainColumns.push({
+      y: Math.random() * h,
+      speed: 1 + Math.random() * 3,
+      chars: [],
+      brightness: 0.3 + Math.random() * 0.7,
+      isCyan: Math.random() > 0.4, // 60% cyan, 40% purple
+    });
+    // Pre-fill column with chars
+    const charCount = Math.floor(h / lyricRainFontSize);
+    for (let j = 0; j < charCount; j++) {
+      lyricRainColumns[i].chars.push(lyricRainChars[Math.floor(Math.random() * lyricRainChars.length)]);
+    }
+  }
+}
+
+async function fetchLyrics() {
+  const t = currentQueue[currentQueueIndex];
+  if (!t) return;
+  if (t.id === lyricRainLastTrackId && lyricRainLyrics) return;
+  lyricRainLastTrackId = t.id;
+  lyricRainLyrics = '';
+  lyricRainLyricWords = [];
+  lyricRainWordIndex = 0;
+
+  try {
+    // Try Subsonic getLyrics API
+    const resp = await SUBSONIC.get('getLyrics', { artist: t.artist || '', title: t.title || '' });
+    if (resp && resp.lyrics && resp.lyrics.value) {
+      lyricRainLyrics = resp.lyrics.value;
+    }
+  } catch(e) {
+    console.log('Lyrics fetch failed, using track info');
+  }
+
+  // Fallback: use track title + artist as repeating text
+  if (!lyricRainLyrics) {
+    const title = t.title || 'AETHER';
+    const artist = t.artist || '';
+    lyricRainLyrics = (artist ? artist + ' — ' : '') + title;
+  }
+
+  // Split into words
+  lyricRainLyricWords = lyricRainLyrics.split(/\s+/).filter(w => w.length > 0);
+  if (lyricRainLyricWords.length === 0) lyricRainLyricWords = ['AETHER'];
+}
+
+function drawLyricRain(ctx, w, h, time) {
+  // Dark fade — trail persistence
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+  ctx.fillRect(0, 0, w, h);
+
+  if (!lyricRainColumns) initLyricRain(w, h);
+
+  const bi = beatIntensity;
+  const fs = lyricRainFontSize;
+
+  // Fetch lyrics for current track (non-blocking)
+  const t = currentQueue[currentQueueIndex];
+  if (t && t.id !== lyricRainLastTrackId) fetchLyrics();
+
+  // Speed multiplier based on audio
+  const speedMul = 0.8 + bands.energy * 1.5 + bi * 0.5;
+
+  // Draw falling columns
+  ctx.font = `${fs}px "JetBrains Mono", monospace`;
+  ctx.textAlign = 'center';
+
+  lyricRainColumns.forEach((col, colIdx) => {
+    const x = colIdx * fs + fs / 2;
+
+    // Advance column
+    col.y += col.speed * speedMul;
+    if (col.y > h + fs * 5) {
+      col.y = -fs * (5 + Math.random() * 10);
+      col.speed = 1 + Math.random() * 3;
+      col.isCyan = Math.random() > 0.4;
+    }
+
+    // Randomly mutate chars
+    if (Math.random() < 0.04) {
+      const mutIdx = Math.floor(Math.random() * col.chars.length);
+      col.chars[mutIdx] = lyricRainChars[Math.floor(Math.random() * lyricRainChars.length)];
+    }
+
+    // Draw characters in this column
+    const startRow = Math.floor(col.y / fs);
+    const tailLen = 15 + Math.floor(bands.energy * 10);
+    for (let j = 0; j < tailLen; j++) {
+      const rowY = (startRow - j) * fs;
+      if (rowY < -fs || rowY > h + fs) continue;
+      const charIdx = ((startRow - j) % col.chars.length + col.chars.length) % col.chars.length;
+      const ch = col.chars[charIdx];
+
+      const fade = 1 - j / tailLen;
+      if (j === 0) {
+        // Head — bright white-cyan or white-purple
+        const headAlpha = (0.9 + bi * 0.1) * col.brightness;
+        ctx.fillStyle = col.isCyan
+          ? `rgba(200, 255, 255, ${headAlpha})`
+          : `rgba(230, 200, 255, ${headAlpha})`;
+        ctx.shadowColor = col.isCyan ? 'rgba(0, 220, 245, 0.8)' : 'rgba(183, 110, 255, 0.8)';
+        ctx.shadowBlur = 12 + bi * 8;
+      } else if (j < 3) {
+        // Near-head — bright tinted
+        const nearAlpha = fade * 0.8 * col.brightness;
+        ctx.fillStyle = col.isCyan
+          ? `rgba(0, 240, 255, ${nearAlpha})`
+          : `rgba(183, 130, 255, ${nearAlpha})`;
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+      } else {
+        // Trail — dimming
+        const trailAlpha = fade * fade * 0.5 * col.brightness;
+        ctx.fillStyle = col.isCyan
+          ? `rgba(0, 180, 200, ${trailAlpha})`
+          : `rgba(120, 60, 180, ${trailAlpha})`;
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+      }
+      ctx.fillText(ch, x, rowY);
+    }
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
+  });
+
+  // ═══ LYRIC WORDS materializing out of the rain ═══
+  // Spawn new words on beat or periodically
+  const wordInterval = 1200 - bands.energy * 400; // ms between words
+  if (lyricRainLyricWords.length > 0 && (time - lyricRainWordTimer > wordInterval || bi > 0.5)) {
+    if (time - lyricRainWordTimer > Math.max(300, wordInterval) || bi > 0.6) {
+      lyricRainWordTimer = time;
+      const word = lyricRainLyricWords[lyricRainWordIndex % lyricRainLyricWords.length];
+      lyricRainWordIndex++;
+
+      // Position: random horizontal, centered vertical band
+      lyricRainActiveWords.push({
+        text: word,
+        x: w * 0.15 + Math.random() * w * 0.7,
+        y: h * 0.25 + Math.random() * h * 0.5,
+        born: time,
+        duration: 2500 + word.length * 100,
+        size: Math.max(24, Math.min(60, w * 0.035 + bi * 15)),
+        isCyan: Math.random() > 0.35,
+        revealed: 0, // characters revealed so far
+      });
+    }
+  }
+
+  // Draw and update active lyric words
+  lyricRainActiveWords = lyricRainActiveWords.filter(word => {
+    const age = time - word.born;
+    if (age > word.duration) return false;
+
+    const life = age / word.duration;
+    // Phase 1: letter-by-letter reveal (first 40% of life)
+    // Phase 2: full display (40-75%)
+    // Phase 3: fade out (75-100%)
+    const revealPhase = Math.min(1, life / 0.4);
+    const charsToShow = Math.ceil(revealPhase * word.text.length);
+    const fadeOut = life > 0.75 ? 1 - (life - 0.75) / 0.25 : 1;
+    const fadeIn = Math.min(1, life / 0.1);
+    const alpha = fadeIn * fadeOut;
+
+    ctx.font = `bold ${word.size}px "Orbitron", sans-serif`;
+    ctx.textAlign = 'center';
+
+    // Each character
+    for (let c = 0; c < word.text.length; c++) {
+      const ch = word.text[c];
+      const charX = word.x + (c - word.text.length / 2) * (word.size * 0.65);
+      const charY = word.y;
+
+      if (c < charsToShow) {
+        // Revealed character — bright and glowing
+        const charAge = revealPhase - (c / word.text.length);
+        const freshness = Math.max(0, 1 - charAge * 3); // freshly revealed chars glow brighter
+
+        // Glow
+        ctx.shadowColor = word.isCyan ? 'rgba(0, 220, 245, 0.9)' : 'rgba(183, 110, 255, 0.9)';
+        ctx.shadowBlur = 15 + freshness * 20 + bi * 10;
+
+        // Main color — white when fresh, colored when settled
+        const bright = freshness > 0.3 ? 255 : (word.isCyan ? 0 : 183);
+        const g = freshness > 0.3 ? 255 : (word.isCyan ? 240 : 110);
+        const b = freshness > 0.3 ? 255 : (word.isCyan ? 255 : 255);
+        ctx.fillStyle = `rgba(${bright}, ${g}, ${b}, ${alpha * (0.8 + freshness * 0.2)})`;
+        ctx.fillText(ch, charX, charY);
+      } else {
+        // Unrevealed — show random matrix char, dim
+        const rndCh = lyricRainChars[Math.floor(Math.random() * lyricRainChars.length)];
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
+        ctx.fillStyle = word.isCyan
+          ? `rgba(0, 180, 200, ${alpha * 0.15})`
+          : `rgba(120, 60, 180, ${alpha * 0.15})`;
+        ctx.fillText(rndCh, charX, charY);
+      }
+    }
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
+
+    return true;
+  });
+
+  // Ambient glow — subtle cyan/purple gradient from bottom
+  const ambH = h * 0.3;
+  const ambGrad = ctx.createLinearGradient(0, h, 0, h - ambH);
+  ambGrad.addColorStop(0, `rgba(0, 180, 216, ${0.02 + bands.bass * 0.02})`);
+  ambGrad.addColorStop(0.5, `rgba(123, 47, 190, ${0.01 + bands.energy * 0.015})`);
+  ambGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = ambGrad;
+  ctx.fillRect(0, h - ambH, w, ambH);
+
+  // Beat flash
+  if (bi > 0.65) {
+    ctx.fillStyle = `rgba(0, 220, 245, ${(bi - 0.65) * 0.06})`;
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  vizGlowIntensity = bands.energy * 0.25 + bi * 0.4;
+}
+
 function drawViz(time) {
   // Scenes that use trails handle their own clearing.
   // Only clear for scenes that need a full clear each frame.
-  const trailScenes = [0, 1, 3, 5, 6, 7, 8, 9, 11, 13, 14, 15]; // FRACTAL FLAME, VOID PULSE, PARTICLE FIELD, PLASMA WARP, NEURAL WEB, AURORA BOREALIS, DNA HELIX, COSMIC MANDALA, BIO-GENESIS, VOID PULSE II, NEURAL WEB II, DNA HELIX II
+  const trailScenes = [0, 1, 3, 5, 6, 7, 8, 9, 11, 13, 14, 15, 16]; // FRACTAL FLAME, VOID PULSE, PARTICLE FIELD, PLASMA WARP, NEURAL WEB, AURORA BOREALIS, DNA HELIX, COSMIC MANDALA, BIO-GENESIS, VOID PULSE II, NEURAL WEB II, DNA HELIX II, LYRIC RAIN
   const sheepVideo = document.getElementById('sheepVideo');
   if (currentScene === 10) {
     // Electric Sheep mode — video plays behind, canvas overlays on top
@@ -7305,6 +7551,7 @@ function drawViz(time) {
     case 13: drawVoidPulseII(vizCtx, vizW, vizH, time); break;
     case 14: drawNeuralWebII(vizCtx, vizW, vizH, time); break;
     case 15: drawDnaHelixII(vizCtx, vizW, vizH, time); break;
+    case 16: drawLyricRain(vizCtx, vizW, vizH, time); break;
   }
   requestAnimationFrame(drawViz);
 }
