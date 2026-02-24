@@ -1,4 +1,7 @@
 # === AETHER .gitignore ===
+# Website (separate from Electron app)
+index.html
+
 # Node
 node_modules/
 npm-debug.log*
