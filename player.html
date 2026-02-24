@@ -3803,6 +3803,7 @@ document.getElementById('settTestConn').addEventListener('click', async () => {
 let sheepVideos = [];
 let sheepVideoIdx = 0;
 let sheepFolder = '';
+
 function updateSheepStatus() {
   const el = document.getElementById('settSheepStatus');
   if (!el) return;
@@ -4861,7 +4862,7 @@ function drawTronGrid(ctx, w, h, time) {
     const y = Math.round(rawY) + 0.5; // Snap to pixel for crisp lines
     const proximity = Math.pow(t, 0.6);
     const alpha = proximity * (0.35 + bands.bass * 0.5 + bi * 0.3);
-    const lineW = proximity > 0.3 ? 1 : 0.5; // Crisp: either 1px or 0.5px, no fractional blur
+    const lineW = proximity > 0.3 ? 1 : 0.5; // Crisp: either 1px or 0.5px
 
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y);
     ctx.strokeStyle = `rgba(0, 220, 245, ${Math.min(0.8, alpha)})`;
@@ -4872,7 +4873,7 @@ function drawTronGrid(ctx, w, h, time) {
   // === VERTICAL CONVERGING LINES — purple only, ultra-thin, crisp ===
   const vLines = 24;
   for (let i = -vLines; i <= vLines; i++) {
-    if (i === 0) continue; // skip center line for cleanliness
+    if (i === 0) continue;
     const spread = 2.4 + bassBoost * 0.6 + bi * 0.2;
     const baseX = vanishX + i * (w / vLines) * spread + bassShakeX;
     const dist = Math.abs(i) / vLines;
