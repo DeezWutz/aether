@@ -3802,11 +3802,11 @@ function updateSheepStatus() {
   }
 }
 
-function scanSheepFolder(folderPath) {
+async function scanSheepFolder(folderPath) {
   if (!folderPath) return;
   sheepFolder = folderPath;
   if (window.electronAPI && window.electronAPI.scanSheepFolder) {
-    const files = window.electronAPI.scanSheepFolder(folderPath);
+    const files = await window.electronAPI.scanSheepFolder(folderPath);
     sheepVideos = (files || []).map(f => 'file:///' + encodeURI(f).replace(/#/g, '%23'));
     showToast(`Electric Sheep: ${sheepVideos.length} video${sheepVideos.length === 1 ? '' : 's'} loaded`);
   } else {
@@ -4028,7 +4028,7 @@ async function loadSheepVideos(folderPath) {
   sheepFolder = folderPath;
   if (window.electronAPI && window.electronAPI.scanSheepFolder) {
     try {
-      const files = window.electronAPI.scanSheepFolder(folderPath);
+      const files = await window.electronAPI.scanSheepFolder(folderPath);
       sheepVideos = (files || []).map(f => 'file:///' + encodeURI(f).replace(/#/g, '%23'));
       showToast(`Electric Sheep: loaded ${sheepVideos.length} videos`);
     } catch(e) {
@@ -7705,7 +7705,7 @@ document.querySelector('.viz-expand').addEventListener('click', (e) => {
 })();
 
 // ============ ELECTRIC SHEEP AUTO-SCAN ============
-(function initElectricSheep() {
+(async function initElectricSheep() {
   // Video error handler
   const sv = document.getElementById('sheepVideo');
   sv.addEventListener('error', (e) => {
@@ -7727,7 +7727,7 @@ document.querySelector('.viz-expand').addEventListener('click', (e) => {
   console.log('Electric Sheep: scanning', scanPath);
   if (window.electronAPI && window.electronAPI.scanSheepFolder) {
     try {
-      const files = window.electronAPI.scanSheepFolder(scanPath);
+      const files = await window.electronAPI.scanSheepFolder(scanPath);
       console.log('Electric Sheep scan result:', files?.length, 'files');
       if (files && files.length > 0) {
         sheepVideos = files.map(f => 'file:///' + encodeURI(f).replace(/#/g, '%23'));

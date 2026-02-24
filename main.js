@@ -40,7 +40,6 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false,      // Required for fs/path access in preload (Electric Sheep scan)
       webSecurity: false,  // Allow fetch to localhost Navidrome from file:// origin
       webgl: true,
       backgroundThrottling: false,
@@ -197,4 +196,20 @@ ipcMain.handle('open-files-dialog', async (_event, title, extensions) => {
   });
   if (result.canceled) return [];
   return result.filePaths;
+});
+
+// Electric Sheep: scan folder for video files (runs in main process, no sandbox issue)
+const fs = require('fs');
+ipcMain.handle('scan-sheep-folder', (_event, folderPath) => {
+  try {
+    if (!fs.existsSync(folderPath)) return [];
+    const files = fs.readdirSync(folderPath);
+    const videoExts = ['.mp4', '.webm', '.mkv', '.avi', '.mov', '.m4v'];
+    return files
+      .filter(f => videoExts.includes(path.extname(f).toLowerCase()))
+      .map(f => path.join(folderPath, f).replace(/\\/g, '/'));
+  } catch (e) {
+    console.error('Sheep scan error:', e);
+    return [];
+  }
 });
